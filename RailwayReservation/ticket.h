@@ -10,15 +10,17 @@ public:
 	int end;
 	int seats;
 	vector<int> rows;
+	vector<int> rows2;
 	int confirmed;
 	int rac;
-	ticket(int s, int e, int t, vector<int> row,int seats,int rac) {
+	ticket(int s, int e, int t, vector<int> row,int seats,int rac, vector<int> row2) {
 		start = s;
 		end = e;
 		seats = t;
 		rows = row;
 		confirmed = seats;
 		rac = rac;
+		rows2 = row;
 	}
 
 };
@@ -72,7 +74,112 @@ public:
 		}
 		return out;
 	}
+	bool isRACticketavailable(int start, int end, int seats) {
+		int out = false;
+		int avseats = 0;
+
+		for (int i = 0; i < 10; i++) {
+			int seatflag = 0;
+			int s = start;
+			int e = end;
+			while (s < e) {
+				if (rac[i][s] == 0)seatflag++;
+				s++;
+			}
+			if (seatflag == end - start)avseats++;
+
+		}
+		if (avseats >= seats) {
+			out = true;
+		}
+		return out;
+	}
+	bool bookRacTicket(int start, int end, int seats)
+	{
+		bool out = false;
+		int booked = 0;
+		if (isRACticketavailable(start, end, seats)) {
+			int tseats=seats-1;
+			int cdone = 0;
+			while (tseats>0) {
+				if(isticketavailable(start, end, tseats)) {
+					int booked = 0;
+					vector<int> rows;
+					for (int i = 0; i < 10; i++) {
+
+						int seatflag = 0;
+						int s = start;
+						int e = end;
+						while (s < e) {
+							if (reserved[i][s] == 0)seatflag++;
+							s++;
+						}
+						if (seatflag == end - start and booked < tseats) {
+							s = start;
+							e = end;
+							while (s <= e) {
+								reserved[i][s] = 1;
+								s++;
+							}
+							rows.push_back(i);
+							booked++;
+						}
+
+					}
+					lastpnr += 1;
+					cdone = tseats;
+					cdone = seats - cdone;
+					
+					ticket obj(start, end, tseats, rows, tseats, seats-tseats, bookrac(start, end, cdone));
+					cout << "confirmed ticket booked with pnr:" << lastpnr << endl;
+					tickets.push_back(obj);
+					
+					tseats = -1;
+				}
+
+				tseats--;
+			}
+			
+
+
+		}
+
+
+		if (booked == seats) {
+			out = true;
+		}
+		return out;
+
+	}
+	vector<int> bookrac(int start, int end, int seats) {
+		int booked = 0;
+		vector<int> rows;
+		for (int i = 0; i < 10; i++) {
+
+			int seatflag = 0;
+			int s = start;
+			int e = end;
+			while (s < e) {
+				if (rac[i][s] == 0)seatflag++;
+				s++;
+			}
+			if (seatflag == end - start and booked < seats) {
+				s = start;
+				e = end;
+				while (s <= e) {
+					rac[i][s] = 1;
+					s++;
+				}
+				rows.push_back(i);
+				booked++;
+			}
+
+		}
+		return rows;
+	}
+
 	void bookticket(int start, int end, int seats) {
+		//full ticket
 		if (isticketavailable(start, end, seats)) {
 			int booked = 0;
 			vector<int> rows;
@@ -98,11 +205,16 @@ public:
 
 			}
 			lastpnr += 1;
-			ticket obj(start, end, seats,rows,seats, 0);
-			cout << "ticket booked with pnr:" << lastpnr << endl;
+			vector<int> null;
+			ticket obj(start, end, seats,rows,seats, 0,null);
+			cout << "confirmed ticket booked with pnr:" << lastpnr << endl;
 			tickets.push_back(obj);
 		}
+
+		else if(bookRacTicket( start,  end,  seats)){ }
+		
 		else {
+
 			cout << "seats not available"<<endl;
 		}
 	}
